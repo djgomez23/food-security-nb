@@ -19,3 +19,7 @@ The following R and Python libraries were used to design the visualizations:
 ## Research
 
 Beyond creating the visualizations, a personal goal was conducting extensive research about the subject matter to better inform the overall direction of the data analysis. This preliminary work built the foundation for the report and helped guide any conclusions drawn from the visualizations.
+
+## Shiny App
+
+To view the separate Shiny App report, follow [this link](https://djgomez23.shinyapps.io/foodSecurity_dash/).
