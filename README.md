@@ -23,3 +23,7 @@ Beyond creating the visualizations, a personal goal was conducting extensive res
 ## Shiny App
 
 To view the separate Shiny App report, follow [this link](https://djgomez23.shinyapps.io/foodSecurity_dash/).
+
+## Final Report
+
+To view the full Jupyter Notebook report with a link to the Shiny App excerpt, follow [this link](https://djgomez23.github.io/food-security-nb/index.html).
