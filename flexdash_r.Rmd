@@ -1,0 +1,126 @@
+---
+title: "Global Food Security"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(ggiraph)
+
+data <- read_csv('data/total_data.csv', show_col_types = FALSE)
+```
+# Exploratory Data Analysis of Global Food Insecurity
+## Damita Gomez
+
+### Introduction
+
+Much of the work for this project started with simply thinking about the issue of food security and performing the necessary research to understand the issue better and how to best go about an exploratory analysis of related data on a global scale. The United Nations and other organizations are well versed in identifying the leading causes behind food insecurity. A few of these factors are explored in this report. There are also regional factors outside of the datasets used that are discussed later on. Besides confirming existing theories about food insecurity, the visualizations presented here help to show the magnitude of the problem for select areas, especially in the global south.
+
+As for the process of building this report, research was first conducted followed by outlining what types of visualizations would suit each EDA component based on the selected datasets and the topic of global food insecurity.
+
+### Handling Multivariate Analysis
+```{r}
+# Filter data for the years 2020-2022
+filtered_data <- data %>% 
+  filter(Year == "2018-2020")
+
+# Create the plot
+p <- ggplot(data, aes(
+    x = `Cereals in Diet`, 
+    y = Value, 
+    size = GDP, 
+    color = Region
+  )) +
+  geom_point_interactive(aes(tooltip = `Country or Area`), alpha = 0.7) +  # Interactive hover labels
+  scale_size_continuous(range = c(3, 12)) +  # Bubble size scaling
+  theme_minimal() +
+  labs(
+    x = "% of Cereals in Diet",
+    y = "% Food Insecure",
+    size = "GDP",
+    color = "Region",
+    title = "Cereals in Diet vs Food Insecurity on Avg from 2018-2020"
+  ) +
+  theme(legend.position = "right")
+
+# Create interactive version
+# not that the hover labels will appear in an HTML format
+p_interactive <- girafe(ggobj = p, width_svg = 8, height_svg = 5)
+
+# Display
+p_interactive
+```
+
+The feature heatmap earlier in the report provided some ideas for what relationships to look at more closely. Specifically, the percentage of cereals, roots, and tubers in a national diet appears to have a strong, negative association with GDP PPP per capita and a somewhat positive association with the percentage of food insecure people on a national scale. However, the heatmap estimated the correlations from multiple years. This bubble map looks at the previous features mentioned in closer detail from 2018-2020 while also distinguishing the observations by geographic region.
+
+For nations in Africa and Asia, there does seem to be a positive relationship between diet and food insecurity. This observation is not particularly surprising since UN studies have already proven this association. What becomes more obvious with each visualization is the incredible disparity that African nations are facing compared to the rest of the world. What is also shown is that even though Asian nations with a higher percentage of cereals in their diet and lower GDP are more more likely to be food insecure, it is nowhere as severe as what a given African nation must be facing with those same numbers This suggests that there must be other factors affecting food security outside of the dataset that are specific to the African continent. Based on this visual, the same could be said about countries in Central America and the Caribbean.
+
+### Time Series and Trends
+
+```{r}
+top_countries <- data %>%
+  filter(Year == '2020-2022') %>%
+  group_by(`Country or Area`) %>%
+  summarize(Max_Value = max(Value)) %>%
+  arrange(desc(Max_Value)) %>%
+  slice_head(n = 9) %>%
+  pull(`Country or Area`)  # Get top 9 countries
+
+# Filter dataset for only the top 9 countries
+filtered_data <- data %>%
+  filter(`Country or Area` %in% top_countries)
+
+# Create the faceted line plot
+ggplot(filtered_data, aes(x = Year, y = Value, group = `Country or Area`, color = `Country or Area`)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  facet_wrap(~`Country or Area`, scales = "fixed") +  # Each country gets its own plot
+  theme_minimal() +
+  labs(
+    title = "Changes in Food Insecurity Over Time for Top 9 Countries",
+    x = "Year",
+    y = "Value",
+    color = "Country"
+  ) +
+  theme(
+    legend.position = "none",  # Remove legend since we have facets
+    strip.text = element_text(size = 12, face = "bold"),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+```
+
+This visualization looks at the nine most food insecure nations (as of 2020-2022) in the dataset from 2014-2022. Besides Haiti, all of these nations are found on the African continent. Most of these nations have food insecurity levels below 50% with the Central African Republic and South Sudan being clear exceptions. For better or worse, these nations do not appear to have experienced large shifts in their food insecure populations. While these numbers appear to match what has been previously observed in the other visualizations (Note: South Sudan has no data to report for cereals, roots, and tubers in its diet. Therefore, it has been excluded from the previous chart.), there is more to be understood about their food insecurity. They share attributes such as similar GDP ranges, geography, and cereal foods in their diet. Outside of the dataset but perhaps still related through regionality, many of these nine countries possess the following attributes that add food insecurity: armed conflicts, climate change, economic instability, health crises, low agricultural production, and lack of infrastructure in rural areas.
+
+### Conclusion
+
+Using the various visualizations in the report, there are clear trends when it comes to food insecurity. With more data and additional features, more observations could be made. However, one major takeaway that is visually obvious would be the major challenges specific regions face when it comes to food insecurity versus others. Certain plots made comparing the different regions the primary goal. Using color also proved to be helpful when trying to compare multiple features including the region. There were no new relationships between features discovered in this report, and existing theories are confirmed visually. Hunger in the Global South is not unheard of, but visualizing the primary causes and evidence of the issue help highlight the severity.
+
+#### Data Source: Food and Agriculture Organization of the United Nations
+[Link](http://data.un.org/Explorer.aspx)
+
+#### References
+
+- [Food Security in the US](https://www.ers.usda.gov/topics/food-nutrition-assistance/food-security-in-the-us/measurement)
+- [International trade in open and transparent markets may help alleviate the effects of shocks and ensure food security](https://sdgpulse.unctad.org/trade-agriculture-biotrade/)
+- [Food insecurity: What can the world trading system do about it?](https://www.piie.com/publications/policy-briefs/2023/food-insecurity-what-can-world-trading-system-do-about-it)
+- [Impacts of Regional Trade Agreements(RTAs) on Food Security: A Case of ASEAN Free Trade Agreement](https://arxiv.org/abs/1407.2677)
+- [Fairtrade could help tackle exploitation in UK factories and farms, new boss says](https://www.theguardian.com/business/2025/jan/25/fairtrade-uk-factories-farms-ethical-trade-eleanor-harrison)
+- [Increasing Production](https://wad.jrc.ec.europa.eu/irrigations)
+- [Stability of Food Security in Iran; Challenges and Ways Forward: A Narrative Review](https://pmc.ncbi.nlm.nih.gov/articles/PMC9874189/)
+- [How Africa Can Escape Chronic Food Insecurity Amid Climate Change](https://www.imf.org/en/Blogs/Articles/2022/09/14/how-africa-can-escape-chronic-food-insecurity-amid-climate-change)
+- [UN food agency says 40 million people are struggling to feed themselves in West and Central Africa](https://apnews.com/article/africa-food-insecurity-hunger-304b66ef7b9b56262fe1114a4b28c7e6)
+- [Democratic Republic of the Congo](https://www.wfp.org/countries/democratic-republic-congo)
+- [Hunger in Guinea Remains High](https://borgenproject.org/famine-in-guinea/)
+- [Hunger in Haiti reaches famine levels as gangs squeeze life out of the capital and beyond](https://apnews.com/article/haiti-hunger-starving-report-af625f8d80698788624dfbcc30c656a4)
+- [Liberia](https://www.wfp.org/countries/liberia)
+- [Tale of two villages: In Malawi, farmers point the way as drought drives hunger](https://www.wfp.org/stories/tale-two-villages-malawi-farmers-point-way-drought-drives-hunger)
+- [Mozambique](https://www.wfp.org/countries/mozambique)
+- [How severe is Somalia’s food crisis?](https://www.nrc.no/perspectives/2023/how-severe-is-somalias-food-crisis)
+- [Hunger crisis in South Sudan](https://www.oxfam.org/en/what-we-do/emergencies/hunger-crisis-south-sudan)
+- [France à fric: the CFA zone in Africa and neocolonialism](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://research-portal.st-andrews.ac.uk/files/258644339/Taylor_2019_TWQ_CFAzone_AAM.pdf)
